@@ -11,7 +11,8 @@ class Box(object):
 
     def __init__(self, reward: float, is_wall=False, q_a=None, v_pi=0, terminal=False):
         if q_a is None:
-            q_a = {self.Direction.UP.value: 0, self.Direction.DOWN.value: 0, self.Direction.LEFT.value: 0, self.Direction.RIGHT.value: 0}
+            q_a = {self.Direction.UP.value: 0, self.Direction.DOWN.value: 0, self.Direction.LEFT.value: 0,
+                   self.Direction.RIGHT.value: 0}
 
         self.reward = reward
         self.terminal = terminal

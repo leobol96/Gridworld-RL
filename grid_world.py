@@ -12,7 +12,10 @@ class GridWord(object):
     def __init__(self, height, width, r_nt=0):
 
         self.episode = 1
-        self.rewards_during_episode = []
+        self.step = 1
+        self.rewards_for_step = []
+        self.rewards_for_episode = []
+        self.step_for_episode = []
         self.current_state = [0, 0]
         self.world = []
         for col in range(width):
@@ -92,9 +95,6 @@ class GridWord(object):
                         ax.text(idx_col, idx_row, str(row), va='center', ha='center')
         plt.show()
 
-    def plot_cumulative_reward(self):
-        pass
-
     def action_e_greedy(self, epsilon):
         epsilon = epsilon * 100
         q_current_state = self.world[self.current_state[0]][self.current_state[1]].q_a
@@ -161,44 +161,48 @@ class GridWord(object):
                             self.current_state[0]][
                             self.current_state[
                                 1]].q_a[direction])
-        self.rewards_during_episode.append(self.world[col][row].reward)
+        self.rewards_for_step.append(self.world[col][row].reward)
+        self.step += 1
         # Update current state
         if self.world[col][row].terminal:
             self.current_state[0] = 0
             self.current_state[1] = 0
-            print(self.episode)
-            print(sum(self.rewards_during_episode))
-            self.rewards_during_episode = []
+            sum_reward = sum(self.rewards_for_step)
+            self.rewards_for_episode.append(sum_reward)
+            self.step_for_episode.append(self.step)
+            print('Episode: ', self.episode, ' Cumulative reward of: ', sum_reward)
+            self.rewards_for_step = []
+            self.step = 0
             self.episode = self.episode + 1
         else:
             self.current_state[0] = col
             self.current_state[1] = row
 
-    def update_state(self):
-        pass
+    def plot_total_reward(self):
+        plt.title = 'Total reward each Episode'
+        plt.plot(self.rewards_for_episode)
+        plt.ylabel('Total rewards')
+        plt.xlabel('Episode')
+        plt.show()
+
+    def plot_step_for_episode(self):
+        plt.title = 'Number of steps for episode'
+        plt.plot(self.step_for_episode)
+        plt.ylabel('Total steps')
+        plt.xlabel('Episode')
+        plt.show()
 
 
 if __name__ == '__main__':
     gridworld = GridWord(height=9, width=9, r_nt=-1)
     gridworld.set_terminal_state(row=8, col=8, reward=50)
     gridworld.set_terminal_state(row=6, col=6, reward=-50)
-    gridworld.set_wall([[1, 2],
-                        [1, 3],
-                        [1, 4],
-                        [1, 5],
-                        [1, 6],
-                        [2, 6],
-                        [3, 6],
-                        [4, 6],
-                        [5, 6],
-                        [2, 6],
-                        [7, 1],
-                        [7, 2],
-                        [7, 3],
-                        [7, 4]])
-    # gridworld.plot_world('wall')
-    # gridworld.plot_world('terminal')
-    while gridworld.episode <= 400:
-        action = gridworld.action_e_greedy(0.95)
+    gridworld.set_wall([[1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+                        [2, 6], [3, 6], [4, 6], [5, 6], [2, 6],
+                        [7, 1], [7, 2], [7, 3], [7, 4]])
+    while gridworld.episode <= 100:
+        action = gridworld.action_e_greedy(0.1)
         gridworld.update_q_learning(direction=action, alpha=0.99, discount_factor=1)
     gridworld.plot_world('q_a')
+    gridworld.plot_total_reward()
+    gridworld.plot_step_for_episode()
