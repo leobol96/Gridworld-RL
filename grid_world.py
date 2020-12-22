@@ -73,7 +73,7 @@ class GridWord(object):
                     tmp.append(row.reward)
                 elif variable == 'q_a':
                     tmp_a.append(row.get_max_q('action'))
-                    tmp.append(round(row.get_max_q('value'),1))
+                    tmp.append(round(row.get_max_q('value'), 1))
                 elif variable == 'terminal':
                     tmp.append(int(row.terminal))
             matrix_tmp.append(tmp)
@@ -92,6 +92,9 @@ class GridWord(object):
                         ax.text(idx_col, idx_row, str(row), va='center', ha='center')
         plt.show()
 
+    def plot_cumulative_reward(self):
+        pass
+
     def action_e_greedy(self, epsilon):
         epsilon = epsilon * 100
         q_current_state = self.world[self.current_state[0]][self.current_state[1]].q_a
@@ -107,6 +110,7 @@ class GridWord(object):
         if 'greedy' in value:
             # take maximum
             action = self.world[self.current_state[0]][self.current_state[1]].get_max_q(value_type='action')
+            if action not in possible_direction: action = random.choice(possible_direction)
         else:
             action = random.choice(possible_direction)
         return action
@@ -131,18 +135,32 @@ class GridWord(object):
             return True
 
     def update_sarsa(self, direction):
+        """
+        Method to update the Q_values using the SARSA Algorithm
+        Args:
+            direction:
+        Returns:
+        """
         pass
 
     def update_q_learning(self, direction, alpha, discount_factor):
+        """
+        Method to update the Q_values using the Q_learning Algorithm
+        Args:
+            direction: Direction took from the Epsilon greedy method
+            alpha: Alpha constant
+            discount_factor: Discount factor
+        """
         # Update Q
         col, row = self.get_next_state(direction=direction)
         self.world[self.current_state[0]][self.current_state[1]].q_a[direction] = \
-        self.world[self.current_state[0]][self.current_state[1]].q_a[direction] + alpha * (self.world[col][row].reward + (
-                    discount_factor * self.world[col][row].get_max_q(value_type='value')) -
-                                                                                           self.world[
-                                                                                               self.current_state[0]][
-                                                                                               self.current_state[
-                                                                                                   1]].q_a[direction])
+            self.world[self.current_state[0]][self.current_state[1]].q_a[direction] + alpha * (
+                        self.world[col][row].reward + (
+                        discount_factor * self.world[col][row].get_max_q(value_type='value')) -
+                        self.world[
+                            self.current_state[0]][
+                            self.current_state[
+                                1]].q_a[direction])
         self.rewards_during_episode.append(self.world[col][row].reward)
         # Update current state
         if self.world[col][row].terminal:
@@ -150,6 +168,7 @@ class GridWord(object):
             self.current_state[1] = 0
             print(self.episode)
             print(sum(self.rewards_during_episode))
+            self.rewards_during_episode = []
             self.episode = self.episode + 1
         else:
             self.current_state[0] = col
@@ -179,7 +198,7 @@ if __name__ == '__main__':
                         [7, 4]])
     # gridworld.plot_world('wall')
     # gridworld.plot_world('terminal')
-    while gridworld.episode <= 100:
-        action = gridworld.action_e_greedy(0.90)
+    while gridworld.episode <= 400:
+        action = gridworld.action_e_greedy(0.95)
         gridworld.update_q_learning(direction=action, alpha=0.99, discount_factor=1)
     gridworld.plot_world('q_a')
