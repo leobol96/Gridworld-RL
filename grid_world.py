@@ -95,7 +95,13 @@ class GridWord(object):
                         ax.text(idx_col, idx_row, str(row), va='center', ha='center')
         plt.show()
 
-    def action_e_greedy(self, epsilon):
+    def action_e_greedy(self, epsilon) -> str:
+        """
+        This method select the next action following the E-greedy paradigm
+        Args:
+            epsilon: Epsilon to use in the e-greedy function
+        Returns: Action to take
+        """
         epsilon = epsilon * 100
         q_current_state = self.world[self.current_state[0]][self.current_state[1]].q_a
         possible_direction = [*q_current_state]
@@ -116,6 +122,12 @@ class GridWord(object):
         return action
 
     def get_next_state(self, direction):
+        """
+        This method return the next position of the agent given a direction to take
+        Args:
+            direction: Direction to take
+        Returns: Position of the next state
+        """
         col = self.current_state[0]
         row = self.current_state[1]
 
@@ -129,7 +141,13 @@ class GridWord(object):
             row = row - 1
         return [col, row]
 
-    def direction_against_wall(self, direction):
+    def direction_against_wall(self, direction) -> bool:
+        """
+        This method return if the next block is a wall
+        Args:
+            direction: Direction to take
+        Returns: True if the next block in the world is a wall
+        """
         col, row = self.get_next_state(direction=direction)
         if self.world[col][row].wall:
             return True
