@@ -1,9 +1,7 @@
 import random
 
-from box import Box
-import matplotlib.pyplot as plt
 import common_functions
-
+from box import Box
 from position import Position
 
 

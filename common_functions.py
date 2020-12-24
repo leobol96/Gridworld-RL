@@ -37,8 +37,8 @@ def plot_world(worlds:list, variable: str = 'v_pi'):
                 elif variable == 'reward':
                     tmp.append(row.reward)
                 elif variable == 'q_a':
-                    tmp_a.append(row.get_max_q('action'))
-                    tmp.append(round(row.get_max_q('value'), 1))
+                    tmp_a.append(world.get_max_q(current_state=row, value_type='action'))
+                    tmp.append(round(world.get_max_q(current_state=row, value_type='value'), 1))
                 elif variable == 'terminal':
                     tmp.append(int(row.terminal))
             matrix_tmp.append(tmp)
