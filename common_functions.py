@@ -3,16 +3,18 @@ import matplotlib.pyplot as plt
 
 def plot_total_reward_step(world_qlearning, world_sarsa):
     fig, axs = plt.subplots(2, 1, constrained_layout=True)
-    axs[0].plot(world_qlearning.rewards_for_episode)
-    axs[0].plot(world_sarsa.rewards_for_episode)
+    axs[0].plot(world_qlearning.rewards_for_episode, label=world_qlearning.name)
+    axs[0].plot(world_sarsa.rewards_for_episode, label=world_sarsa.name)
     axs[0].set_title('Total reward for each episode')
     axs[0].set_xlabel('Episode')
     axs[0].set_ylabel('Total reward')
-    axs[1].plot(world_qlearning.step_for_episode)
-    axs[1].plot(world_sarsa.step_for_episode)
+    axs[0].legend()
+    axs[1].plot(world_qlearning.step_for_episode, label=world_qlearning.name)
+    axs[1].plot(world_sarsa.step_for_episode, label=world_sarsa.name)
     axs[1].set_xlabel('Episode')
     axs[1].set_title('Number of step for episode')
     axs[1].set_ylabel('Steps')
+    axs[1].legend()
     fig.suptitle('Reward and Step per Episode', fontsize=16)
     plt.show()
 
