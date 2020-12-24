@@ -181,15 +181,15 @@ class GridWord(object):
 
 
 if __name__ == '__main__':
-    n_episode = 50
+    n_episode = 100
     epsilon = 0.01
     alpha = 0.90
-    discount_episode = 1
+    discount_episode = 0.8
 
     # Q-Learning
     q_learning_world = GridWord(name='Q-Learning', height=9, width=9, r_nt=-1)
     q_learning_world.set_terminal_state(row=8, col=8, reward=50)
-    q_learning_world.set_terminal_state(row=6, col=6, reward=-50)
+    q_learning_world.set_terminal_state(row=6, col=5, reward=-50)
     q_learning_world.set_wall([[1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
                                [2, 6], [3, 6], [4, 6], [5, 6], [2, 6],
                                [7, 1], [7, 2], [7, 3], [7, 4]])
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     # Sarsa
     sarsa_world = GridWord(name='SARSA', height=9, width=9, r_nt=-1)
     sarsa_world.set_terminal_state(row=8, col=8, reward=50)
-    sarsa_world.set_terminal_state(row=6, col=6, reward=-50)
+    sarsa_world.set_terminal_state(row=6, col=5, reward=-50)
     sarsa_world.set_wall([[1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
                           [2, 6], [3, 6], [4, 6], [5, 6], [2, 6],
                           [7, 1], [7, 2], [7, 3], [7, 4]])
