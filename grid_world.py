@@ -174,64 +174,101 @@ class GridWord(object):
         sum_reward = sum(self.rewards_for_step)
         self.rewards_for_episode.append(sum_reward)
         self.step_for_episode.append(self.step)
-        print('Episode: ', self.episode, ' Cumulative reward of: ', sum_reward)
         self.rewards_for_step = []
         self.step = 0
+        print('Episode: ', self.episode, ' Cumulative reward of: ', sum_reward)
         self.episode = self.episode + 1
+
+    def sarsa_algorithm(self, epsilon, alpha, discount_factor):
+        s = self.get_current_state()
+        action = self.action_e_greedy(current_state=s, epsilon=epsilon)
+        while self.episode <= n_episode:
+            self.current_position.col, self.current_position.row = self.get_next_state(action)
+            s_first = self.get_current_state()
+            action_first = self.action_e_greedy(current_state=s_first, epsilon=epsilon)
+            self.update_q_value(s=s, s_first=s_first, action=action, action_first=action_first, alpha=alpha,
+                                discount_factor=discount_factor)
+            action = action_first
+            s = s_first
+
+            if s.terminal:
+                self.restart_episode()
+                s = self.get_current_state()
+                action = self.action_e_greedy(current_state=s, epsilon=epsilon)
+
+    def q_learning_algorithm(self, epsilon, alpha, discount_factor):
+        s = self.get_current_state()
+        while self.episode <= n_episode:
+            action = self.action_e_greedy(current_state=s, epsilon=epsilon)
+            self.current_position.col, self.current_position.row = self.get_next_state(
+                action)
+            s_first = self.get_current_state()
+            self.update_q_value(s=s, s_first=s_first, action=action, action_first=None, alpha=alpha,
+                                discount_factor=discount_factor)
+            s = s_first
+
+            if s.terminal:
+                self.restart_episode()
+                s = self.get_current_state()
 
 
 if __name__ == '__main__':
     n_episode = 100
     epsilon = 0.01
-    alpha = 0.90
-    discount_episode = 0.8
+    alpha = 0.95
+    discount_episode = 1
+    height = 9
+    width = 9
+    walls = [
+        [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
+        [2, 6], [3, 6], [4, 6], [5, 6], [2, 6],
+        [7, 1], [7, 2], [7, 3], [7, 4]]
+
+    # Monte-Carlo evaluation
+    monte_carlo_world = GridWord(name='Monte Carlo Evaluation', height=height, width=width, r_nt=-1)
+    monte_carlo_world.set_terminal_state(row=8, col=8, reward=50)
+    monte_carlo_world.set_terminal_state(row=6, col=5, reward=-50)
+    monte_carlo_world.set_wall(walls=walls)
+
+    returns = {}
+    G = 0
+    while monte_carlo_world.episode <= n_episode:
+        s = monte_carlo_world.get_current_state()
+        hash_position = str(monte_carlo_world.current_position.col) + str(monte_carlo_world.current_position.row)
+        action = monte_carlo_world.action_e_greedy(current_state=s, epsilon=1)
+        monte_carlo_world.current_position.col, monte_carlo_world.current_position.row = monte_carlo_world.get_next_state(
+            action)
+        s_first = monte_carlo_world.get_current_state()
+        G = discount_episode * G + s_first.reward
+        if hash_position not in returns:
+            returns[hash_position] = [G]
+        else:
+            returns[hash_position].append(G)
+            s.v_pi = round(sum(returns[hash_position]) / len(returns[hash_position]), 2)
+
+        s = s_first
+
+        if s.terminal:
+            G = 0
+            monte_carlo_world.restart_episode()
+            s = monte_carlo_world.get_current_state()
+            action = monte_carlo_world.action_e_greedy(current_state=s, epsilon=1)
+
+    common_functions.plot_world(worlds=[monte_carlo_world], variable='v_pi')
 
     # Q-Learning
-    q_learning_world = GridWord(name='Q-Learning', height=9, width=9, r_nt=-1)
+    q_learning_world = GridWord(name='Q-Learning', height=height, width=width, r_nt=-1)
     q_learning_world.set_terminal_state(row=8, col=8, reward=50)
     q_learning_world.set_terminal_state(row=6, col=5, reward=-50)
-    q_learning_world.set_wall([[1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
-                               [2, 6], [3, 6], [4, 6], [5, 6], [2, 6],
-                               [7, 1], [7, 2], [7, 3], [7, 4]])
-
-    s = q_learning_world.get_current_state()
-    while q_learning_world.episode <= n_episode:
-        action = q_learning_world.action_e_greedy(current_state=s, epsilon=epsilon)
-        q_learning_world.current_position.col, q_learning_world.current_position.row = q_learning_world.get_next_state(
-            action)
-        s_first = q_learning_world.get_current_state()
-        q_learning_world.update_q_value(s=s, s_first=s_first, action=action, action_first=None, alpha=alpha,
-                                        discount_factor=discount_episode)
-        s = s_first
-
-        if s.terminal:
-            q_learning_world.restart_episode()
-            s = q_learning_world.get_current_state()
-            action = q_learning_world.action_e_greedy(current_state=s, epsilon=epsilon)
+    q_learning_world.set_wall(walls=walls)
+    q_learning_world.q_learning_algorithm(alpha=alpha, epsilon=epsilon, discount_factor=discount_episode)
 
     # Sarsa
-    sarsa_world = GridWord(name='SARSA', height=9, width=9, r_nt=-1)
+    sarsa_world = GridWord(name='SARSA', height=height, width=width, r_nt=-1)
     sarsa_world.set_terminal_state(row=8, col=8, reward=50)
     sarsa_world.set_terminal_state(row=6, col=5, reward=-50)
-    sarsa_world.set_wall([[1, 2], [1, 3], [1, 4], [1, 5], [1, 6],
-                          [2, 6], [3, 6], [4, 6], [5, 6], [2, 6],
-                          [7, 1], [7, 2], [7, 3], [7, 4]])
-
-    s = sarsa_world.get_current_state()
-    action = sarsa_world.action_e_greedy(current_state=s, epsilon=epsilon)
-    while sarsa_world.episode <= n_episode:
-        sarsa_world.current_position.col, sarsa_world.current_position.row = sarsa_world.get_next_state(action)
-        s_first = sarsa_world.get_current_state()
-        action_first = sarsa_world.action_e_greedy(current_state=s_first, epsilon=epsilon)
-        sarsa_world.update_q_value(s=s, s_first=s_first, action=action, action_first=action_first, alpha=alpha,
-                                   discount_factor=discount_episode)
-        action = action_first
-        s = s_first
-
-        if s.terminal:
-            sarsa_world.restart_episode()
-            s = sarsa_world.get_current_state()
-            action = sarsa_world.action_e_greedy(current_state=s, epsilon=epsilon)
+    sarsa_world.set_wall(walls=walls)
+    sarsa_world.sarsa_algorithm(alpha=alpha, epsilon=epsilon, discount_factor=discount_episode)
 
     # Graphs
     common_functions.plot_world(worlds=[q_learning_world, sarsa_world], variable='q_a')

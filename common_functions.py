@@ -19,10 +19,9 @@ def plot_total_reward_step(world_qlearning, world_sarsa):
     plt.show()
 
 
-def plot_world(worlds:list, variable: str = 'v_pi'):
-
-    fig, ax = plt.subplots(1, 2)
-    fig.suptitle('Coloured MAP for '+ variable + ' variable', fontsize=16)
+def plot_world(worlds: list, variable: str = 'v_pi'):
+    fig, ax = plt.subplots(1, len(worlds))
+    fig.suptitle('Coloured MAP for ' + variable + ' variable', fontsize=16)
     for idx_world, world in enumerate(worlds):
         matrix_tmp = []
         matrix_tmp_a = []
@@ -44,15 +43,26 @@ def plot_world(worlds:list, variable: str = 'v_pi'):
             matrix_tmp.append(tmp)
             matrix_tmp_a.append(tmp_a)
 
-        ax[idx_world].matshow(matrix_tmp, cmap=plt.cm.Greens)
-        ax[idx_world].set_title(world.name + ' ' + variable)
+        if len(worlds) > 1:
+            ax[idx_world].matshow(matrix_tmp, cmap=plt.cm.Greens)
+            ax[idx_world].set_title(world.name + ' ' + variable)
+        else:
+            ax.matshow(matrix_tmp)
+            ax.set_title(world.name + ' ' + variable)
 
         if variable in ['v_pi', 'reward', 'q_a']:
             for idx_col, col in enumerate(matrix_tmp):
                 for idx_row, row in enumerate(col):
                     if variable == 'q_a':
-                        ax[idx_world].text(idx_row, idx_col, str(row), va='bottom', ha='center')
-                        ax[idx_world].text(idx_row, idx_col, matrix_tmp_a[idx_col][idx_row], va='top', ha='center')
+                        if len(worlds) > 1:
+                            ax[idx_world].text(idx_row, idx_col, str(row), va='bottom', ha='center')
+                            ax[idx_world].text(idx_row, idx_col, matrix_tmp_a[idx_col][idx_row], va='top', ha='center')
+                        else:
+                            ax.text(idx_row, idx_col, str(row), va='bottom', ha='center')
+                            ax.text(idx_row, idx_col, matrix_tmp_a[idx_col][idx_row], va='top', ha='center')
                     else:
-                        ax[idx_world].text(idx_col, idx_row, str(row), va='center', ha='center')
+                        if len(worlds) > 1:
+                            ax[idx_world].text(idx_row, idx_col, str(row), va='center', ha='center')
+                        else:
+                            ax.text(idx_row, idx_col, str(row), va='center', ha='center')
     plt.show()
