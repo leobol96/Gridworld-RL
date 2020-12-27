@@ -9,7 +9,7 @@ class Box(object):
         LEFT = 'left'
         RIGHT = 'right'
 
-    def __init__(self, reward: float, is_wall=False, q_a=None, v_pi=0, terminal=False):
+    def __init__(self, reward: float, row, col, is_wall=False, q_a=None, v_pi=0, terminal=False):
         if q_a is None:
             q_a = {self.Action.UP.value: 0, self.Action.DOWN.value: 0, self.Action.LEFT.value: 0,
                    self.Action.RIGHT.value: 0}
@@ -19,3 +19,9 @@ class Box(object):
         self.q_a = q_a
         self.v_pi = v_pi
         self.wall = is_wall
+        self.row = row
+        self.col = col
+
+    def __hash__(self):
+        return int(str(self.col) + str(self.row))
+
