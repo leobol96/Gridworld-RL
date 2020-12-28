@@ -1,8 +1,8 @@
 import random
 
 import common_functions
-from box import Box
-from position import Position
+from common_classes import Cell
+from common_classes import Position
 
 
 class GridWord(object):
@@ -23,17 +23,17 @@ class GridWord(object):
         for col in range(width):
             tmp = []
             for row in range(height):
-                # Define a Box and for all the box remove the actions that bring the agents outside of the world
-                box = Box(reward=r_nt, col=col, row=row)
+                # Define a Cell and for all the cell remove the actions that bring the agents outside of the world
+                cell = Cell(reward=r_nt, col=col, row=row)
                 if row == 0:
-                    box.q_a.pop(Box.Action.LEFT.value)
+                    cell.q_a.pop(Cell.Action.LEFT.value)
                 if row == width - 1:
-                    box.q_a.pop(Box.Action.RIGHT.value)
+                    cell.q_a.pop(Cell.Action.RIGHT.value)
                 if col == 0:
-                    box.q_a.pop(Box.Action.UP.value)
+                    cell.q_a.pop(Cell.Action.UP.value)
                 if col == height - 1:
-                    box.q_a.pop(Box.Action.DOWN.value)
-                tmp.append(box)
+                    cell.q_a.pop(Cell.Action.DOWN.value)
+                tmp.append(cell)
             self.world.append(tmp)
 
     def set_terminal_state(self, row: int, col: int, reward: float) -> None:
@@ -97,13 +97,13 @@ class GridWord(object):
         col = self.current_position.col
         row = self.current_position.row
 
-        if action == Box.Action.DOWN.value:
+        if action == Cell.Action.DOWN.value:
             col = col + 1
-        elif action == Box.Action.UP.value:
+        elif action == Cell.Action.UP.value:
             col = col - 1
-        elif action == Box.Action.RIGHT.value:
+        elif action == Cell.Action.RIGHT.value:
             row = row + 1
-        elif action == Box.Action.LEFT.value:
+        elif action == Cell.Action.LEFT.value:
             row = row - 1
         return [col, row]
 
@@ -180,6 +180,15 @@ class GridWord(object):
         self.episode = self.episode + 1
 
     def sarsa_algorithm(self, n_episode, epsilon, alpha, discount_factor):
+        """
+        Sarsa algorithm to find the optimal policy
+        Args:
+            n_episode: Number of episodes
+            epsilon: Epsilon to use in e-greedy method
+            alpha: Learning rate
+            discount_factor: Discount factor gamma
+        """
+        print('START SARSA METHOD')
         s = self.get_current_state()
         action = self.action_e_greedy(current_state=s, epsilon=epsilon)
         while self.episode <= n_episode:
@@ -197,6 +206,15 @@ class GridWord(object):
                 action = self.action_e_greedy(current_state=s, epsilon=epsilon)
 
     def q_learning_algorithm(self, n_episode, epsilon, alpha, discount_factor):
+        """
+        Q-learning algorithm to find the optimal policy
+        Args:
+            n_episode: Number of episodes
+            epsilon: Epsilon to use in e-greedy method
+            alpha: Learning rate
+            discount_factor: Discount factor gamma
+        """
+        print('START Q-LEARNING METHOD')
         s = self.get_current_state()
         while self.episode <= n_episode:
             action = self.action_e_greedy(current_state=s, epsilon=epsilon)
@@ -211,7 +229,16 @@ class GridWord(object):
                 self.restart_episode()
                 s = self.get_current_state()
 
-    def monte_carlo_algorithm(self):
+    def monte_carlo_evaluation(self, n_episode, epsilon, discount_factor, type_of_algorithm):
+        """
+        Q-learning algorithm to evaluate the state functions v
+        Args:
+            n_episode: Number of episodes
+            epsilon: Epsilon to use in e-greedy method
+            discount_factor: Discount factor gamma
+            type_of_algorithm: Type of monte carlo algorithm. FV to use the First visit Monte Carlo evaluation. Other strings to Every visit Monte Carlo evaluation
+        """
+        print('START MC-EVALUATION METHOD')
         # Initialize:
         returns = {}
 
@@ -227,13 +254,15 @@ class GridWord(object):
                 s = self.get_current_state()
                 states.append(s)
                 states_hash.append(str(hash(s)))
-                action = self.action_e_greedy(current_state=s, epsilon=1)
+                action = self.action_e_greedy(current_state=s, epsilon=epsilon)
                 self.current_position.col, self.current_position.row = self.get_next_state(
                     action)
                 s_first = self.get_current_state()
                 reward = s_first.reward
                 rewards.append(reward)
                 s = s_first
+                self.rewards_for_step.append(s_first.reward)
+                self.step += 1
 
             self.restart_episode()
 
@@ -243,15 +272,26 @@ class GridWord(object):
 
             # For each step
             for idx_step, step in enumerate(states):
-                G = discount_episode * G + rewards[idx_step]
+                G = discount_factor * G + rewards[idx_step]
 
-                # If s doesn't appear in the S(t-1)
-                if states_hash[idx_step] not in states_hash[:idx_step]:
+                if type_of_algorithm == 'FV':
+                    # First visit monte carlo
+                    # If s doesn't appear in the S(t-1)
+                    if states_hash[idx_step] not in states_hash[:idx_step]:
+                        if str(states_hash[idx_step]) in returns:
+                            returns[str(states_hash[idx_step])].append(G)
+                        else:
+                            returns[str(states_hash[idx_step])] = [G]
+                        states[idx_step].v_pi = round(
+                            sum(returns[states_hash[idx_step]]) / len(returns[states_hash[idx_step]]), 1)
+                else:
+                    # Every visit monte carlo
                     if str(states_hash[idx_step]) in returns:
                         returns[str(states_hash[idx_step])].append(G)
                     else:
                         returns[str(states_hash[idx_step])] = [G]
-                    states[idx_step].v_pi = round(sum(returns[states_hash[idx_step]]) / len(returns[states_hash[idx_step]]), 2)
+                    states[idx_step].v_pi = round(
+                        sum(returns[states_hash[idx_step]]) / len(returns[states_hash[idx_step]]), 1)
 
 
 if __name__ == '__main__':
@@ -271,7 +311,7 @@ if __name__ == '__main__':
     monte_carlo_world.set_terminal_state(row=8, col=8, reward=50)
     monte_carlo_world.set_terminal_state(row=6, col=5, reward=-50)
     monte_carlo_world.set_wall(walls=walls)
-    monte_carlo_world.monte_carlo_algorithm()
+    monte_carlo_world.monte_carlo_evaluation(n_episode=n_episode, epsilon=1, discount_factor=discount_episode, type_of_algorithm='EV')
 
     # Q-Learning
     q_learning_world = GridWord(name='Q-Learning', height=height, width=width, r_nt=-1)
@@ -291,4 +331,3 @@ if __name__ == '__main__':
     common_functions.plot_world(worlds=[monte_carlo_world], variable='v_pi')
     common_functions.plot_world(worlds=[q_learning_world, sarsa_world], variable='q_a')
     common_functions.plot_total_reward_step(world_qlearning=q_learning_world, world_sarsa=sarsa_world)
-

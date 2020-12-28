@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Box(object):
+class Cell(object):
 
     class Action(Enum):
         UP = 'up'
@@ -24,4 +24,12 @@ class Box(object):
 
     def __hash__(self):
         return int(str(self.col) + str(self.row))
+
+
+class Position(object):
+
+    def __init__(self, col, row):
+        self.col = col
+        self.row = row
+
 
