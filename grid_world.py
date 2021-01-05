@@ -23,17 +23,7 @@ class GridWord(object):
         for col in range(width):
             tmp = []
             for row in range(height):
-                # Define a Cell and for all the cell remove the actions that bring the agents outside of the world
-                cell = Cell(reward=r_nt, col=col, row=row)
-                if row == 0:
-                    cell.q_a.pop(Cell.Action.LEFT.value)
-                if row == width - 1:
-                    cell.q_a.pop(Cell.Action.RIGHT.value)
-                if col == 0:
-                    cell.q_a.pop(Cell.Action.UP.value)
-                if col == height - 1:
-                    cell.q_a.pop(Cell.Action.DOWN.value)
-                tmp.append(cell)
+                tmp.append(Cell(reward=r_nt, col=col, row=row))
             self.world.append(tmp)
 
     def set_terminal_state(self, row: int, col: int, reward: float) -> None:
@@ -76,11 +66,6 @@ class GridWord(object):
         possible_action = [*q_current_state]
         value = random.choices(['random', 'greedy'], weights=[epsilon, 100 - epsilon], k=1)
 
-        # Remove all the actions were a wall is found
-        for a in possible_action[:]:
-            if self.action_against_wall(a):
-                possible_action.remove(a)
-
         # Choose greedy between the possible actions
         if 'greedy' in value:
             return self.get_max_q(current_state=current_state, value_type='action')
@@ -105,18 +90,11 @@ class GridWord(object):
             row = row + 1
         elif action == Cell.Action.LEFT.value:
             row = row - 1
-        return [col, row]
 
-    def action_against_wall(self, action) -> bool:
-        """
-        This method return if the next block is a wall
-        Args:
-            action: Action to take
-        Returns: True if the next block in the world is a wall
-        """
-        col, row = self.get_next_state(action=action)
-        if self.world[col][row].wall:
-            return True
+        # Walls or out of the world
+        if (col < 0 or col > height - 1) or (row < 0 or row > width - 1) or self.world[col][row].wall:
+            return [self.current_position.col, self.current_position.row]
+        return [col, row]
 
     def get_max_q(self, current_state, value_type):
         """
@@ -129,15 +107,14 @@ class GridWord(object):
         """
         max_value = None
         for possible_action in [*current_state.q_a]:
-            # Check if the next action is a wall
-            if not self.action_against_wall(possible_action):
-                if max_value is None:
+            if max_value is None:
+                max_value = current_state.q_a[possible_action]
+                max_q = possible_action
+            else:
+                if current_state.q_a[possible_action] > max_value:
                     max_value = current_state.q_a[possible_action]
                     max_q = possible_action
-                else:
-                    if current_state.q_a[possible_action] > max_value:
-                        max_value = current_state.q_a[possible_action]
-                        max_q = possible_action
+
         if value_type == 'action':
             return max_q
         else:
@@ -189,6 +166,7 @@ class GridWord(object):
             discount_factor: Discount factor gamma
         """
         print('START SARSA METHOD')
+        alpha = alpha - (alpha - 1) / n_episode
         s = self.get_current_state()
         action = self.action_e_greedy(current_state=s, epsilon=epsilon)
         while self.episode <= n_episode:
@@ -295,10 +273,6 @@ class GridWord(object):
 
 
 if __name__ == '__main__':
-    n_episode = 100
-    epsilon = 0.01
-    alpha = 0.9
-    discount_episode = 1
     height = 9
     width = 9
     walls = [
@@ -307,27 +281,34 @@ if __name__ == '__main__':
         [7, 1], [7, 2], [7, 3], [7, 4]]
 
     # Monte-Carlo evaluation
+    """
     monte_carlo_world = GridWord(name='Monte Carlo Evaluation', height=height, width=width, r_nt=-1)
     monte_carlo_world.set_terminal_state(row=8, col=8, reward=50)
     monte_carlo_world.set_terminal_state(row=6, col=5, reward=-50)
     monte_carlo_world.set_wall(walls=walls)
-    monte_carlo_world.monte_carlo_evaluation(n_episode=n_episode, epsilon=1, discount_factor=discount_episode, type_of_algorithm='EV')
+    monte_carlo_world.monte_carlo_evaluation(n_episode=1000, epsilon=1, discount_factor=1, type_of_algorithm='FV')
+    common_functions.plot_world(worlds=[monte_carlo_world], variable='v_pi')
+    """
 
+    """
     # Q-Learning
     q_learning_world = GridWord(name='Q-Learning', height=height, width=width, r_nt=-1)
     q_learning_world.set_terminal_state(row=8, col=8, reward=50)
     q_learning_world.set_terminal_state(row=6, col=5, reward=-50)
     q_learning_world.set_wall(walls=walls)
-    q_learning_world.q_learning_algorithm(n_episode=n_episode, alpha=alpha, epsilon=epsilon, discount_factor=discount_episode)
+    q_learning_world.q_learning_algorithm(n_episode=200, alpha=0.9, epsilon=0.9, discount_factor=1)
+    common_functions.plot_world(worlds=[q_learning_world], variable='q_a')
+    common_functions.plot_total_reward_step(worlds=[q_learning_world])
+    """
+
 
     # Sarsa
     sarsa_world = GridWord(name='SARSA', height=height, width=width, r_nt=-1)
     sarsa_world.set_terminal_state(row=8, col=8, reward=50)
     sarsa_world.set_terminal_state(row=6, col=5, reward=-50)
     sarsa_world.set_wall(walls=walls)
-    sarsa_world.sarsa_algorithm(n_episode=n_episode, alpha=alpha, epsilon=epsilon, discount_factor=discount_episode)
+    sarsa_world.sarsa_algorithm(n_episode=500, alpha=0.9, epsilon=0.3, discount_factor=1)
+    common_functions.plot_world(worlds=[sarsa_world], variable='q_a')
+    common_functions.plot_total_reward_step(worlds=[sarsa_world])
 
-    # Graphs
-    common_functions.plot_world(worlds=[monte_carlo_world], variable='v_pi')
-    common_functions.plot_world(worlds=[q_learning_world, sarsa_world], variable='q_a')
-    common_functions.plot_total_reward_step(world_qlearning=q_learning_world, world_sarsa=sarsa_world)
+    # common_functions.plot_world(worlds=[q_learning_world, sarsa_world], variable='q_a')
