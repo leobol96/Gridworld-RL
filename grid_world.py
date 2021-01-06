@@ -120,6 +120,15 @@ class GridWord(object):
         else:
             return max_value
 
+    def random_position(self):
+        found_position = False
+        while not found_position:
+            col = random.randint(0, 8)
+            row = random.randint(0, 8)
+            if not self.world[col][row].wall:
+                found_position = True
+        return col, row
+
     def update_q_value(self, s, s_first, action, action_first, alpha, discount_factor):
         """
         Function to update the value of q(a)
@@ -142,12 +151,15 @@ class GridWord(object):
         self.rewards_for_step.append(s_first.reward)
         self.step += 1
 
-    def restart_episode(self):
+    def restart_episode(self, random_start):
         """
         This method restarts the episode in position (0,0) and all the counters.
         """
-        self.current_position.col = 0
-        self.current_position.row = 0
+        if random_start:
+            self.current_position.col, self.current_position.row = self.random_position()
+        else:
+            self.current_position.col = 0
+            self.current_position.row = 0
         sum_reward = sum(self.rewards_for_step)
         self.rewards_for_episode.append(sum_reward)
         self.step_for_episode.append(self.step)
@@ -156,7 +168,7 @@ class GridWord(object):
         print('Episode: ', self.episode, ' Cumulative reward of: ', sum_reward)
         self.episode = self.episode + 1
 
-    def sarsa_algorithm(self, n_episode, epsilon, alpha, discount_factor):
+    def sarsa_algorithm(self, n_episode, epsilon, alpha, discount_factor, random_start):
         """
         Sarsa algorithm to find the optimal policy
         Args:
@@ -166,7 +178,6 @@ class GridWord(object):
             discount_factor: Discount factor gamma
         """
         print('START SARSA METHOD')
-        alpha = alpha - (alpha - 1) / n_episode
         s = self.get_current_state()
         action = self.action_e_greedy(current_state=s, epsilon=epsilon)
         while self.episode <= n_episode:
@@ -179,11 +190,13 @@ class GridWord(object):
             s = s_first
 
             if s.terminal:
-                self.restart_episode()
+                self.restart_episode(random_start=random_start)
                 s = self.get_current_state()
                 action = self.action_e_greedy(current_state=s, epsilon=epsilon)
+                epsilon = 1 - (self.episode / n_episode)
+                alpha = 1 - (self.episode / n_episode)
 
-    def q_learning_algorithm(self, n_episode, epsilon, alpha, discount_factor):
+    def q_learning_algorithm(self, n_episode, epsilon, alpha, discount_factor, random_start):
         """
         Q-learning algorithm to find the optimal policy
         Args:
@@ -204,10 +217,11 @@ class GridWord(object):
             s = s_first
 
             if s.terminal:
-                self.restart_episode()
+                self.restart_episode(random_start)
                 s = self.get_current_state()
+                epsilon = 1 - (self.episode / n_episode) ** 10
 
-    def monte_carlo_evaluation(self, n_episode, epsilon, discount_factor, type_of_algorithm):
+    def monte_carlo_evaluation(self, n_episode, epsilon, discount_factor, type_of_algorithm, random_start):
         """
         Q-learning algorithm to evaluate the state functions v
         Args:
@@ -242,7 +256,7 @@ class GridWord(object):
                 self.rewards_for_step.append(s_first.reward)
                 self.step += 1
 
-            self.restart_episode()
+            self.restart_episode(random_start=random_start)
 
             states.reverse()
             states_hash.reverse()
@@ -286,29 +300,31 @@ if __name__ == '__main__':
     monte_carlo_world.set_terminal_state(row=8, col=8, reward=50)
     monte_carlo_world.set_terminal_state(row=6, col=5, reward=-50)
     monte_carlo_world.set_wall(walls=walls)
-    monte_carlo_world.monte_carlo_evaluation(n_episode=1000, epsilon=1, discount_factor=1, type_of_algorithm='FV')
+    monte_carlo_world.monte_carlo_evaluation(n_episode=1000, epsilon=1, discount_factor=1, type_of_algorithm='FV', random_start=False)
     common_functions.plot_world(worlds=[monte_carlo_world], variable='v_pi')
     """
 
-    """
     # Q-Learning
     q_learning_world = GridWord(name='Q-Learning', height=height, width=width, r_nt=-1)
     q_learning_world.set_terminal_state(row=8, col=8, reward=50)
     q_learning_world.set_terminal_state(row=6, col=5, reward=-50)
     q_learning_world.set_wall(walls=walls)
-    q_learning_world.q_learning_algorithm(n_episode=200, alpha=0.9, epsilon=0.9, discount_factor=1)
+    # q_learning_world.q_learning_algorithm(n_episode=100, alpha=1, epsilon=1, discount_factor=1, random_start=False)
+    q_learning_world.q_learning_algorithm(n_episode=100, alpha=1, epsilon=1, discount_factor=1, random_start=True)
     common_functions.plot_world(worlds=[q_learning_world], variable='q_a')
     common_functions.plot_total_reward_step(worlds=[q_learning_world])
+
     """
-
-
     # Sarsa
     sarsa_world = GridWord(name='SARSA', height=height, width=width, r_nt=-1)
     sarsa_world.set_terminal_state(row=8, col=8, reward=50)
     sarsa_world.set_terminal_state(row=6, col=5, reward=-50)
     sarsa_world.set_wall(walls=walls)
-    sarsa_world.sarsa_algorithm(n_episode=500, alpha=0.9, epsilon=0.3, discount_factor=1)
+    sarsa_world.sarsa_algorithm(n_episode=3000, alpha=0.70, epsilon=1, discount_factor=1, random_start=True)
+    #sarsa_world.sarsa_algorithm(n_episode=50000, alpha=1, epsilon=1, discount_factor=1, random_start=False)
     common_functions.plot_world(worlds=[sarsa_world], variable='q_a')
     common_functions.plot_total_reward_step(worlds=[sarsa_world])
+    """
 
+    # common_functions.plot_total_reward_step(worlds=[sarsa_world, q_learning_world])
     # common_functions.plot_world(worlds=[q_learning_world, sarsa_world], variable='q_a')
