@@ -2,7 +2,14 @@ import matplotlib.pyplot as plt
 
 
 def plot_total_reward_step(worlds: list):
+    """
+    This method plot the graphs for the total amount of rewards and the total amount of steps for each episode.
+    Args:
+        worlds: List of worlds to draw in the graph
+    """
     fig, axs = plt.subplots(2, 1, constrained_layout=True)
+    mng = plt.get_current_fig_manager()
+    mng.window.showMaximized()
     for world in worlds:
         axs[0].plot(world.rewards_for_episode, label=world.name)
     axs[0].set_title('Total reward for each episode')
@@ -13,16 +20,30 @@ def plot_total_reward_step(worlds: list):
     for world in worlds:
         axs[1].plot(world.step_for_episode, label=world.name)
     axs[1].set_xlabel('Episode')
-    axs[1].set_title('Number of step for episode')
+    axs[1].set_title('Number of steps for episode')
     axs[1].set_ylabel('Steps')
     axs[1].legend()
-    fig.suptitle('Reward and Step per Episode', fontsize=16)
+    fig.suptitle('Reward and Steps per Episode', fontsize=16)
     plt.show()
 
 
 def plot_world(worlds: list, variable: str = 'v_pi'):
+    """
+    This method plots the heatmap of the world. There are different logics for different variables.
+    Args:
+        worlds: Worlds to plot
+        variable:
+        -   'v_pi' for state values
+        -   'q_a' for state-action values
+        -   'wall' to print the wall
+        -   'reward' to print the rewards for each state
+        -   'terminal' to print the terminal states
+    Returns:
+    """
     fig, ax = plt.subplots(1, len(worlds))
-    fig.suptitle('Coloured MAP for ' + variable + ' variable', fontsize=16)
+    mng = plt.get_current_fig_manager()
+    mng.window.showMaximized()
+    fig.suptitle('Heatmap for ' + variable, fontsize=16)
     for idx_world, world in enumerate(worlds):
         matrix_tmp = []
         matrix_tmp_a = []
@@ -66,8 +87,9 @@ def plot_world(worlds: list, variable: str = 'v_pi'):
                                 ax.text(idx_row, idx_col, str(row), va='bottom', ha='center')
                                 ax.text(idx_row, idx_col, matrix_tmp_a[idx_col][idx_row], va='top', ha='center')
                     else:
-                        if len(worlds) > 1:
-                            ax[idx_world].text(idx_row, idx_col, str(row), va='center', ha='center')
-                        else:
-                            ax.text(idx_row, idx_col, str(row), va='center', ha='center')
+                        if not world.world[idx_col][idx_row].wall and not world.world[idx_col][idx_row].terminal:
+                            if len(worlds) > 1:
+                                ax[idx_world].text(idx_row, idx_col, str(row), va='center', ha='center')
+                            else:
+                                ax.text(idx_row, idx_col, str(row), va='center', ha='center')
     plt.show()
