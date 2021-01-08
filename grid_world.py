@@ -209,7 +209,7 @@ class GridWord(object):
                 action = self.action_e_greedy(current_state=s, epsilon=epsilon)
 
                 # Normal decrement of Epsilon and Alpha
-                # epsilon = epsilon_tmp * (1 - (self.episode / n_episode))
+                epsilon = epsilon_tmp * (1 - (self.episode / n_episode))
                 # alpha = 1 - (self.episode / n_episode)
 
                 # Last experiment that is possible to find in the Sarsa chapter
@@ -241,7 +241,7 @@ class GridWord(object):
                 s = self.get_current_state()
 
                 # Epsilon decrement to find the optimal policy
-                # epsilon = 1 - (self.episode / n_episode) ** 10
+                epsilon = 1 - (self.episode / n_episode) ** 10
 
     def monte_carlo_evaluation(self, n_episode, epsilon, discount_factor, type_of_algorithm, random_start):
         """
@@ -342,9 +342,9 @@ if __name__ == '__main__':
     q_learning_world.set_terminal_state(row=6, col=5, reward=-50)
     q_learning_world.set_wall(walls=walls)
     # Optimal policy
-    # q_learning_world.q_learning_algorithm(n_episode=100, alpha=1, epsilon=1, discount_factor=1, random_start=False)
+    q_learning_world.q_learning_algorithm(n_episode=100, alpha=1, epsilon=1, discount_factor=1, random_start=False)
     # Optimal path
-    q_learning_world.q_learning_algorithm(n_episode=100, alpha=1, epsilon=0, discount_factor=1, random_start=False)
+    # q_learning_world.q_learning_algorithm(n_episode=100, alpha=1, epsilon=0, discount_factor=1, random_start=False)
     common_functions.plot_world(worlds=[q_learning_world], variable='q_a')
     # ----------------------------------------------------
     # Q-Learning random
@@ -353,11 +353,12 @@ if __name__ == '__main__':
     q_learning_world_random.set_terminal_state(row=6, col=5, reward=-50)
     q_learning_world_random.set_wall(walls=walls)
     # Optimal policy
-    # q_learning_world_random.q_learning_algorithm(n_episode=100, alpha=1, epsilon=1, discount_factor=1, random_start=True)
+    q_learning_world_random.q_learning_algorithm(n_episode=100, alpha=1, epsilon=1, discount_factor=1, random_start=True)
     # Optimal path
-    q_learning_world_random.q_learning_algorithm(n_episode=100, alpha=1, epsilon=0, discount_factor=1,
-                                                 random_start=True)
+    #q_learning_world_random.q_learning_algorithm(n_episode=100, alpha=1, epsilon=0, discount_factor=1,random_start=True)
     common_functions.plot_world(worlds=[q_learning_world_random], variable='q_a')
+    common_functions.plot_total_reward_step(
+        worlds=[q_learning_world, q_learning_world_random])
     # ----------------------------------------------------
     # Sarsa
     sarsa_world = GridWord(name='SARSA', height=height, width=width, r_nt=-1)
@@ -365,9 +366,9 @@ if __name__ == '__main__':
     sarsa_world.set_terminal_state(row=6, col=5, reward=-50)
     sarsa_world.set_wall(walls=walls)
     # Optimal policy
-    # sarsa_world.sarsa_algorithm(n_episode=10000, alpha=1, epsilon=0.00001, discount_factor=1, random_start=False)
+    sarsa_world.sarsa_algorithm(n_episode=10000, alpha=1, epsilon=0.00001, discount_factor=1, random_start=False)
     # Optimal path
-    sarsa_world.sarsa_algorithm(n_episode=100, alpha=1, epsilon=0, discount_factor=1, random_start=False)
+    # sarsa_world.sarsa_algorithm(n_episode=100, alpha=1, epsilon=0, discount_factor=1, random_start=False)
     common_functions.plot_world(worlds=[sarsa_world], variable='q_a')
     # ----------------------------------------------------
     # Sarsa Random
@@ -376,10 +377,12 @@ if __name__ == '__main__':
     sarsa_world_random.set_terminal_state(row=6, col=5, reward=-50)
     sarsa_world_random.set_wall(walls=walls)
     # Optimal policy
-    # sarsa_world_random.sarsa_algorithm(n_episode=10000, alpha=1, epsilon=0.00001, discount_factor=1, random_start=True)
+    sarsa_world_random.sarsa_algorithm(n_episode=10000, alpha=1, epsilon=0.00001, discount_factor=1, random_start=True)
     # Optimal path
-    sarsa_world_random.sarsa_algorithm(n_episode=100, alpha=1, epsilon=0, discount_factor=1, random_start=True)
+    # sarsa_world_random.sarsa_algorithm(n_episode=100, alpha=1, epsilon=0, discount_factor=1, random_start=True)
     common_functions.plot_world(worlds=[sarsa_world_random], variable='q_a')
+    common_functions.plot_total_reward_step(
+        worlds=[sarsa_world, sarsa_world_random])
 
     # Plot all trainings
     common_functions.plot_total_reward_step(
