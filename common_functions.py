@@ -8,8 +8,6 @@ def plot_total_reward_step(worlds: list):
         worlds: List of worlds to draw in the graph
     """
     fig, axs = plt.subplots(2, 1, constrained_layout=True)
-    mng = plt.get_current_fig_manager()
-    mng.window.showMaximized()
     for world in worlds:
         axs[0].plot(world.rewards_for_episode, label=world.name)
     axs[0].set_title('Total reward for each episode')
@@ -41,8 +39,6 @@ def plot_world(worlds: list, variable: str = 'v_pi'):
     Returns:
     """
     fig, ax = plt.subplots(1, len(worlds))
-    mng = plt.get_current_fig_manager()
-    mng.window.showMaximized()
     fig.suptitle('Heatmap for ' + variable, fontsize=16)
     for idx_world, world in enumerate(worlds):
         matrix_tmp = []
