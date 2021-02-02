@@ -100,7 +100,7 @@ Furthermore, as one can see from the following images, the increase of the epsil
 
 
 <p align="center">
-  <img src="/doc/images/sarsa_comparation_0_2.png">
+  <img src="/doc/images/sarsa_comparation_0_20.png">
 </p>
 
 <p align="center">
