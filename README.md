@@ -5,7 +5,13 @@ Solve the Gridworld game with Reinforcement Learning (SARSA and Q-learning)
 
 A GridWorld is a matrix game. Every cell in the matrix can be non-terminal state, a terminal state or wall. An agent who tries to play this game should start from a state and try to reach the maximum reward possible. 
 The agent has to discover the world, so positions of walls and terminal states are not known. If the agent wants to take any action that brings it against a wall, it will remain stationary. If the agent wants to move in a terminal state, the game will end, and a new episode will be restarted. 
+
 To be more precise, in the Sarsa and the Q-learning sections, regular versions of the game will be compared to the game's random versions. The regular version is when the agent reached the terminal state, and it restarts from the position (0,0). Instead, the random version of the game is when the agent concludes an episode, and it restarts from a random state that is neither a terminal state nor a wall.
+
+<p align="center">
+  <img src="/doc/images/Game.PNG">
+</p>
+
 
 ## Data Structure
 
